@@ -97,6 +97,7 @@ T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
        
         muI = ((muI/sum(muI))*T)*sum(muI); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
    end
+   
     gamma = [gamma1 gamma2 gamma3 gamma4];  %vectorize recovery rates
     
     beta = [beta1 beta2 beta3 beta4];%vectorize infection rates
