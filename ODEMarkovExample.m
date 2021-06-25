@@ -2,7 +2,7 @@ tRange = [0 180];                               %% Time Range
 Yo = [999; 1; 2; 3; 10 ;0];
 
 %% Initial S, I1, I2,... In, R
-[tSol,YSol] = ode45(@SIRmodels, tRange, Yo);
+
  
 S = YSol(:,1);
 muI1 = YSol(:,2);
@@ -24,7 +24,7 @@ T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
  
 % stateNames = ["Regime 1" "Regime 2" "Regime 3" "Regime 4"];
 % mc = dtmc(T,'StateNames',stateNames);
-
+[tSol,YSol] = ode45(@SIRmodels, tRange, Yo);
 figure;
 
 imagesc(T);
@@ -57,10 +57,10 @@ ylabel("Number of Individuals")
 function dYdt = SIRmodels(t,Y)
 
     S = Y(1);   %% Susceptibles
-    muI1 = Y(2);%% Infected1
-    muI2 = Y(3);%% Infected2
-    muI3 = Y(4);%% Infected3
-    muI4 = Y(5);%% Infected4
+    I1 = Y(2);%% Infected1
+    I2 = Y(3);%% Infected2
+    I3 = Y(4);%% Infected3
+    I4 = Y(5);%% Infected4
     R = Y(6);   %% Recovered
 T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
      0.02 0.9 0.03 0.05;% Mutations probability for infected2
@@ -68,7 +68,7 @@ T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
      0.02 0.03 0.05 0.90]; % Mutations probability for infected
 
    
-    N = S+ muI1+ muI2+ muI3+ muI4+ R; %% Total Population
+    N = S+ I1+ I2+ I3+ I4+ R; %% Total Population
     
     beta1 = 1+0.5*sin(t); 
     beta2 = 1+0.5*sin(t); 
@@ -80,7 +80,7 @@ T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
     gamma3 = 0.005*t;  %% Recovery Rate (Gamma(I_i))
     gamma4 = 0.005*t; 
    
-    muI = [muI1 muI2 muI3 muI4]; %  infected in each mutation 
+    muI = [I1 I2 I3 I4]; %  infected in each mutation 
     
 if R ~= 0 && mod(t,5) < 1
 muI = ((muI/sum(muI))*T)*sum(muI); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
@@ -92,13 +92,13 @@ end
     
     dSdt = -sum(beta * (S/N) .* muI); % evolution of susceptible 
     
-    dmuI1dt = beta1 * (S/N) * muI(1) - gamma1 * muI(1);% evolution of Infected population 1 
-    dmuI2dt = beta2 * (S/N) * muI(2) - gamma2 * muI(2);% evolution of Infected population 2 
-    dmuI3dt = beta3 * (S/N) * muI(3) - gamma3 * muI(3);% evolution of Infected population 3 
-    dmuI4dt = beta4 * (S/N) * muI(4) - gamma4 * muI(4);% evolution of Infected population 4
+    dI1dt = beta1 * (S/N) * muI(1) - gamma1 * muI(1);% evolution of Infected population 1 
+    dI2dt = beta2 * (S/N) * muI(2) - gamma2 * muI(2);% evolution of Infected population 2 
+    dI3dt = beta3 * (S/N) * muI(3) - gamma3 * muI(3);% evolution of Infected population 3 
+    dI4dt = beta4 * (S/N) * muI(4) - gamma4 * muI(4);% evolution of Infected population 4
     dRdt = sum(gamma .* muI); % Recovered 
     
      %muI = ((muI/sum(muI))*T)*sum(muI); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
 
-    dYdt = [dSdt ;  dmuI1dt; dmuI2dt; dmuI3dt; dmuI4dt; dRdt;];% Solution matrix 
+    dYdt = [dSdt ;  dI1dt; dI2dt; dI3dt; dI4dt; dRdt;];% Solution matrix 
 end
