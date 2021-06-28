@@ -33,7 +33,7 @@ I30 = 1; % initial number of infected
 I40 = 100; % initial number of infected
 
 
-T = 180; % period of 300 days
+T = 180; % period of 180 days
 dt = 1; % time interval for updating
 
 % Calculate the model
@@ -78,24 +78,24 @@ Tr = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
         
 
         
-        beta1 = 5*10^-9; 
-        beta2 = 5*10^-9; 
-        beta3 = 5*10^-9; %% Infection Rates (Beta(I_i))
-        beta4 = 5*10^-9; 
+        beta1 = .3; 
+        beta2 = .3; 
+        beta3 = .3; %% Infection Rates (Beta(I_i))
+        beta4 = .3; 
     
         gamma1 = 0.12;
         gamma2 = 0.12; 
         gamma3 = 0.12;  %% Recovery Rate (Gamma(I_i))
-        gamma4 = 0.12; 
+        gamma4 = 0.002; 
         
         gamma = [gamma1 gamma2 gamma3 gamma4];  %vectorize recovery rates
         beta = [beta1 beta2 beta3 beta4];%vectorize infection rates
         I = [I1(t) I2(t) I3(t) I4(t)];
 
         if t~=0
-            if mod(t,5) == 0
+            if mod(t,20) == 0
                 
-                I = ((I/sum(I))*Tr)*sum(I) %find probability distribution, multiply by transition matrix,then multiply by total infected again 
+                I = ((I/sum(I))*Tr)*sum(I); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
                 I1(t) = I(1);
                 I2(t) = I(2);
                 I3(t) = I(3);
@@ -103,12 +103,12 @@ Tr = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
             end
         end
         % Equations of the model
-        dS  = (-sum(beta * (S(t)).* I))*dt; % evolution of susceptible 
+        dS  = (-sum(beta * (S(t)/N).* I))*dt; % evolution of susceptible 
         %dS = (-beta1*I1(t)*S(t)) * dt
-        dI1 = (beta1*I1(t)*S(t) - gamma1*I1(t)) * dt;
-        dI2 = (beta2*I2(t)*S(t) - gamma2*I2(t)) * dt;
-        dI3 = (beta3*I3(t)*S(t) - gamma3*I3(t)) * dt;
-        dI4 = (beta4*I4(t)*S(t) - gamma4*I4(t)) * dt;
+        dI1 = (beta1*I1(t)*S(t)/N - gamma1*I1(t)) * dt;
+        dI2 = (beta2*I2(t)*S(t)/N - gamma2*I2(t)) * dt;
+        dI3 = (beta3*I3(t)*S(t)/N - gamma3*I3(t)) * dt;
+        dI4 = (beta4*I4(t)*S(t)/N - gamma4*I4(t)) * dt;
         dR =  sum(gamma .* I)* dt; % Recovered  * dt;
         
         S(t+1) = S(t) + dS;
