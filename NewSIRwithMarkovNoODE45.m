@@ -27,21 +27,21 @@ title 'Transition Matrix Heatmap';
 hold on;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-delta = 0.0; % rate of immunity loss
+
 N = 60000000; % Total population N = S + I + R
 
 
-I10 = 100; % initial number of infected
+I10 = 1; % initial number of infected
 I20 = 1; % initial number of infected
 I30 = 1; % initial number of infected
-I40 = 1; % initial number of infected
+I40 = 100; % initial number of infected
 
 
 T = 180; % period of 180 days
 dt = 1; % time interval for updating
 
 % Calculate the model
-[S,I1, I2, I3, I4,R, Tr] = sir_model(delta,N,I10, I20, I30, I40,Tr, T,dt);
+[S,I1, I2, I3, I4,R, Tr] = sir_model(N,I10, I20, I30, I40,Tr, T,dt);
 % Plots that display the epidemic outbreak
 %fprintf('Value of parameter R0 is %.2f',N*beta/gamma)
 t = 0:dt:T-dt;
@@ -53,7 +53,7 @@ xlabel('Days'); ylabel('Number of individuals');
 legend('S','I1','I2','I3','I4','R');
 hold on;
 % Map
-function [S,I1, I2, I3, I4,R,Tr, T] = sir_model(delta,N,I10,I20,I30,I40,Tr, T,dt)
+function [S,I1, I2, I3, I4,R,Tr, T] = sir_model(N,I10,I20,I30,I40,Tr, T,dt)
     % if delta = 0 we assume a model without immunity loss
     
     
@@ -90,24 +90,26 @@ function [S,I1, I2, I3, I4,R,Tr, T] = sir_model(delta,N,I10,I20,I30,I40,Tr, T,dt
         gamma = [gamma1 gamma2 gamma3 gamma4];  %vectorize recovery rates
         beta = [beta1 beta2 beta3 beta4];%vectorize infection rates
         I = [I1(t) I2(t) I3(t) I4(t)];
-
-        if t~=0
-            if mod(t,50) == 0
+          days = 60; %change this to choose the number of days between each mutation of infected
+        if t>=days
+            
+            if mod(t-1,days/dt) == 1
                 
                 I = ((I/sum(I))*Tr)*sum(I); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
                 I1(t) = I(1);
                 I2(t) = I(2);
                 I3(t) = I(3);
                 I4(t) = I(4);
+                t
             end
         end
         % Equations of the model
         dS  = (-sum(beta * (S(t)/N).* I))*dt; % evolution of susceptible 
         %dS = (-beta1*I1(t)*S(t)) * dt
-        dI1 = (beta1*I1(t)*S(t)/N - gamma1*I1(t)) * dt;
-        dI2 = (beta2*I2(t)*S(t)/N - gamma2*I2(t)) * dt;
-        dI3 = (beta3*I3(t)*S(t)/N - gamma3*I3(t)) * dt;
-        dI4 = (beta4*I4(t)*S(t)/N - gamma4*I4(t)) * dt;
+        dI1 = (beta1*I1(t)*(S(t)/N) - gamma1*I1(t)) * dt;
+        dI2 = (beta2*I2(t)*(S(t)/N) - gamma2*I2(t)) * dt;
+        dI3 = (beta3*I3(t)*(S(t)/N) - gamma3*I3(t)) * dt;
+        dI4 = (beta4*I4(t)*(S(t)/N)- gamma4*I4(t)) * dt;
         dR =  sum(gamma .* I)* dt; % Recovered  * dt;
         
         S(t+1) = S(t) + dS;
