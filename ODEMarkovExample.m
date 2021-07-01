@@ -14,7 +14,7 @@ R = [];
 T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
      0.02 0.9 0.03 0.05;% Mutations probability for infected2
      0.02 0.03 0.9 0.05;% Mutations probability for infected3
-     0.52 0.03 0.05 0.4]; % Mutations probability for infected4
+     0.02 0.03 0.05 0.9]; % Mutations probability for infected4
  %Transition Matrix
  
  
