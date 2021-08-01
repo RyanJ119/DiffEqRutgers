@@ -132,7 +132,7 @@ function dYdt = SIRmodels(t,Y)
         beta3 = .2; %% Choose Infection Rates (Beta(I_i)) Here
         beta4 = .4;
        
-        rec = 0.03;
+  %      lOM = 0.03; %loss of immunity rate (for seasonal disease) 
 
         gamma1 = 0.1;
         gamma2 = 0.1; 
@@ -146,13 +146,14 @@ function dYdt = SIRmodels(t,Y)
  
 
     
-    dSdt = -sum(beta * (S/N) .* I)+rec*R; % evolution of susceptible 
+    dSdt = -sum(beta * (S/N) .* I); % evolution of susceptible. for seasonal add "+lOM*R"
     
     dmuI1dt = beta1 * (S/N) * I(1) - gamma1 * I(1);% evolution of Infected population 1 
     dmuI2dt = beta2 * (S/N) * I(2) - gamma2 * I(2);% evolution of Infected population 2 
     dmuI3dt = beta3 * (S/N) * I(3) - gamma3 * I(3);% evolution of Infected population 3 
     dmuI4dt = beta4 * (S/N) * I(4) - gamma4 * I(4);% evolution of Infected population 4
-    dRdt = sum(gamma .* I)-rec*R; % Recovered 
+    
+    dRdt = sum(gamma .* I); % Recovered for seasonal add "- lOM*R
     dmuIdt = [dmuI1dt dmuI2dt dmuI3dt dmuI4dt];
     
      %I = ((I/sum(I))*T)*sum(I); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
