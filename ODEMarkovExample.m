@@ -1,5 +1,5 @@
 
-Yo = [60000000; 1; 1; 1; 100 ;0];%% Initial S, I1, I2,... In, R
+Yo = [60000000; 1; 1; 1; 1 ;0];%% Initial S, I1, I2,... In, R
 
 S = [];
 muI1 = [];
@@ -11,22 +11,25 @@ R = [];
 
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Define Markov Chain for Infected
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Interactions
-T = [0.9 0.05 0.02 0.03; % Mutations probability for infected1
-     0.02 0.9 0.03 0.05;% Mutations probability for infected2
-     0.02 0.03 0.9 0.05;% Mutations probability for infected3
-     0.02 0.03 0.05 0.9]; % Mutations probability for infected4
- %Transition Matrix
- 
- 
- days = 60; % change this to choose the number of days between each mutation of infected 
- 
- i = 180/days; %180 divided by the number of days before transition, number of times to run the solver
+% T = [0.0 1 0.0 0.0; % Mutations probability for infected1
+%      0.0 0.0 1 0.0;% Mutations probability for infected2
+%      0.0 0.0 0.0 1;% Mutations probability for infected3
+%      1 0.0 0.0 0.0]; % Mutations probability for infected4
+%  %Transition Matrix
+T = [0.9 0.05 0.02 0.03;
+    0.02 0.9 0.03 0.05;
+    0.02 0.03 0.9 0.05;
+    0.02 0.03 0.05 .9];
+
+ daysUpdate = 7; % Number of days between mutations (updates) 
+ totalDays = 180; %total days of program
+ i = totalDays/daysUpdate;  % number of times to run the solver
  
  %%%%%%%%%%%%%%%%%% Call the solver i times with a transition of infected
- %%%%%%%%%%%%%%%%%% inbetween each call
+ %%%%%%%%%%%%%%%%%% inbetween calls
  for c = 1:i
      
-     tRange = days*(i-1):1:days*i;   %% number of days to run before breaking out of solver to mutate infected
+     tRange = daysUpdate*(i-1):1:daysUpdate*i;   %% number of days to run before breaking out of solver to mutate infected
      
     [tSol,YSol] = ode45(@SIRmodels, tRange, Yo); % call solver
     
@@ -70,7 +73,15 @@ Yo = [S(end); muI1(end); muI2(end); muI3(end); muI4(end) ;R(end)];%%%% Set new i
 % mc = dtmc(T,'StateNames',stateNames);
 tRange = 0:1:length(S)-1;
 tSol = tRange;
+
+%%%%%%%%% Plot the Markov Chain Defined Above
+
+mc = dtmc(T,'StateNames',["Infection 1" "Infection 2" "Infection 3" "Infection 4"])
+
+ figure;
+ graphplot(mc,'LabelEdges',true);
 figure;
+
 
 imagesc(T);
 colormap(jet);
@@ -82,6 +93,7 @@ h.YTick = 1:4;
 title 'Transition Matrix Heatmap';
 hold on;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % Plotting solution to SIR model
@@ -92,9 +104,10 @@ plot(tSol,muI1)
 plot(tSol,muI2)
 plot(tSol,muI3)
 plot(tSol,muI4)
+plot(tSol, muI1+muI2+muI3+muI4)
 plot(tSol,R)
 %  hold off
-legend("Susceptible","Infected1", "Infected2","Infected3", "Infected4" ,"Recovered")
+legend("Susceptible","Infected1", "Infected2","Infected3", "Infected4", "Total Infected","Recovered")
 xlabel("Days")
 ylabel("Number of Individuals")
 
@@ -113,16 +126,18 @@ function dYdt = SIRmodels(t,Y)
    
     N = S+ muI1+ muI2+ muI3+ muI4+ R; %% Total Population
     
+ 
+        beta1 = .1; 
+        beta2 = .08; 
+        beta3 = .2; %% Choose Infection Rates (Beta(I_i)) Here
+        beta4 = .4;
+       
+        rec = 0.03;
 
-        beta1 = .3; 
-        beta2 = .3; 
-        beta3 = .3; %% Infection Rates (Beta(I_i))
-        beta4 = .3; 
-    
-         gamma1 = 0.12;
-        gamma2 = 0.12; 
-        gamma3 = 0.12;  %% Recovery Rate (Gamma(I_i))
-        gamma4 = 0.12; 
+        gamma1 = 0.1;
+        gamma2 = 0.1; 
+        gamma3 = 0.1;  %% Choose Recovery Rate (Gamma(I_i))
+        gamma4 = 0.2; 
     
     gamma = [gamma1 gamma2 gamma3 gamma4];  %vectorize recovery rates
     beta = [beta1 beta2 beta3 beta4];%vectorize infection rates
@@ -131,13 +146,13 @@ function dYdt = SIRmodels(t,Y)
  
 
     
-    dSdt = -sum(beta * (S/N) .* I); % evolution of susceptible 
+    dSdt = -sum(beta * (S/N) .* I)+rec*R; % evolution of susceptible 
     
     dmuI1dt = beta1 * (S/N) * I(1) - gamma1 * I(1);% evolution of Infected population 1 
     dmuI2dt = beta2 * (S/N) * I(2) - gamma2 * I(2);% evolution of Infected population 2 
     dmuI3dt = beta3 * (S/N) * I(3) - gamma3 * I(3);% evolution of Infected population 3 
     dmuI4dt = beta4 * (S/N) * I(4) - gamma4 * I(4);% evolution of Infected population 4
-    dRdt = sum(gamma .* I); % Recovered 
+    dRdt = sum(gamma .* I)-rec*R; % Recovered 
     dmuIdt = [dmuI1dt dmuI2dt dmuI3dt dmuI4dt];
     
      %I = ((I/sum(I))*T)*sum(I); %find probability distribution, multiply by transition matrix,then multiply by total infected again 
