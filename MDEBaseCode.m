@@ -1,30 +1,73 @@
-n = 4; %number of variants
-variant = linspace(0,4,n) ; %x range of distributions: taking 0-4 
-inf = variant/100+1; % this will need to be fixed to be a function matching the four variants
+%   Model for progression of disease with variants
 
-Yo = [600000; inf' ;0];%% Initial S, I1, I2,... In, R
-add = 0;
+%parameters: n (number of variants), R0(replications rate), Beta(infection
+%rate), Gamma(recovery rate), markov chain (mutation factor) 
+
+
+n = 100; %number of variants n>1 (markov chain does not make sense for n=1)
+variants = linspace(0,1,n) ; %x range of distributions: taking 0-4 
+initI = variants/100+1; % this will need to be fixed to be a function matching the four variants
+
+Yo = [600000; initI' ;0];%% Initial S, I1, I2,... In, R
+sumI = 0;
 S = [];
 I = [];
 R = [];
 Iend=[];
-T = [0.9 0.0 0.08 0.02; %A
-    0.02 0.9 0.03 0.05; %B
-    0.02 0.03 0.9 0.05; %G
-    0.02 0.03 0.05 .9]; %D
-daysUpdate = 7; % Number of days between mutations (updates) 
-totalDays = 400; %total days of program
+% T = [0.9 0.1 0.00 0.00; %A
+%     0.02 0.9 0.03 0.05; %B
+%     0.02 0.03 0.9 0.05; %G
+%     0.02 0.03 0.05 .9]; %D
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+P = NaN(n);
+for i = 1:n
+    P(i,i) = 0.9; %choose percent of each infected that stay in their own cateogry each update
+end 
+                                        % Produce a random transition
+                                        % matrix with 0.9 on the diagonal
+                                        % and n states
+rng(1); % For reproducibility
+mc = mcmix(n,'Fix',P); % add ',Zeros',3 for random zeroes 
+T = [];
+T = mc.P;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+    Ro= (variants/3+1.5);  % replication rate function 
+    gamma = (variants+1)./(variants+1) -13/14; % recovery rate (here it is just 1/14
+    beta=Ro.*gamma; %find beta for all infected populations
+   
+   
+%  Ro=[1.35, 1.2, 1.6, 2.1];  %Replication  Rates of variants	
+ % gamma = [1/14,1/14,1/14,1/14] ;  %% Choose Recovery Rate (Gamma(I_i)) should be 0.072 - 0.142 (1/ 7-14 days)
+ % beta=Ro.*gamma; %find beta for all infected populations
+
+
+    
+daysUpdate = 7; % Number of days between mutations (swapping between infected groups) 
+totalDays = 600; %total days of program
 i = totalDays/daysUpdate;  % number of times to run the solver
+
+
  %%%%%%%%%%%%%%%%%% Call the solver i times with a transition of infected inbetween calls
  for c = 1:i
      tRange = daysUpdate*(i-1):1:daysUpdate*i;   %% number of days to run before breaking out of solver to mutate infected
-     Ro=[1.35, 1.2, 1.6, 2.1];  %Replication  Rates of variants	
-    if  length(R)>300
-        Ro=[0, 0, 0, 0];
-        beta=Ro.*gamma; %find beta for all infected populations
-    end
-    gamma = [1/14,1/14,1/14,1/14] ;  %% Choose Recovery Rate (Gamma(I_i)) should be 0.072 - 0.142 (1/ 7-14 days)
-    beta=Ro.*gamma; %find beta for all infected populations
+    
+%     if  length(R)>300
+%         
+%         Ro=zeros(n);
+%         beta=Ro.*gamma; %find beta for all infected populations
+%         
+%     end
+    
+
     
     [tSol,YSol] = ode45(@(t,Y) SIRmodels(t,Y, n, beta', gamma'), tRange, Yo);
 
@@ -43,7 +86,7 @@ i = totalDays/daysUpdate;  % number of times to run the solver
     if length(R)>0
         R (end)=[];%%%% concatinating matrices double count last previous entry/first new entry. delete one of them here
     end
-    R = vertcat(R, YSol(:,6));
+    R = vertcat(R, YSol(:,n+2));
 
     flip = I';
     Iend = flip(:, end);
@@ -51,28 +94,56 @@ i = totalDays/daysUpdate;  % number of times to run the solver
 
     Iend = ((Iend'./sum(Iend))*T).*sum(Iend); %find probability distribution, multiply by transition matrix,then multiply by total infected again
 
-
     I(end, :) = Iend;
     Yo = [S(end); I(end, :)' ;R(end)];
  end
-tRange = 0:1:length(S)-1;
-tSol = tRange;
-%%%%%%%%% Plot the Markov Chain Defined Above
-mc = dtmc(T,'StateNames',["Infection 1" "Infection 2" "Infection 3" "Infection 4"]);
-
- figure;
- graphplot(mc,'LabelEdges',true);
  
-figure;
-imagesc(T);
-colormap(jet);
-colorbar;
-axis square
-h = gca;
-h.XTick = 1:4;
-h.YTick = 1:4;
-title 'Transition Matrix Heatmap';
-hold on;
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ 
+tRange = 0:1:length(S)-1;
+tSol = tRange;                  %Define time range  for plotting
+
+
+
+%%%%%%%%% Plot the Markov Chain Defined Above
+names = strings;
+
+for i = 1:n
+    names(i) = ['Infection ' num2str(i)]  ; %Name infected populations (lease infective to most)
+end 
+
+
+mc = dtmc(T,'StateNames',[names]); % define markov chain for plotting 
+
+for i = 1:n
+    names(i+1) = ['Infection ' num2str(i)]  ;  
+end 
+                                                % add susceptible, total infected and
+                                                % recovered for plotting 
+names (1) = "susceptible";
+names (n+2) = "total infected";
+names (n+3) = "recovered";
+
+
+
+%  figure;
+%  graphplot(mc,'LabelEdges',true);       %markov chain visual
+%  
+% figure;
+% imagesc(T);
+% colormap(jet);
+% colorbar;
+% axis square
+% h = gca;                    %heatmap visual for markov chain
+% h.XTick = 1:n;
+% h.YTick = 1:n;
+% title 'Transition Matrix Heatmap';
+% hold on;
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting solution to SIR model
 figure;
@@ -80,21 +151,24 @@ plot(tSol,S)
 hold on
 for i = 1:n
     plot(tSol,I(:,i));
-    add = add+I(:,i);
+    sumI = sumI+I(:,i);
 end
-plot(tSol, add)
+plot(tSol, sumI)                    
 plot(tSol,R)
-legend("Susceptible","Infected1(Alpha)", "Infected2(Beta)","Infected3(Gamma)", "Infected4(Delta)", "Total Infected","Recovered", 'FontSize', 18)
+%legend(names, 'FontSize', 18)
 xlabel("Days", 'FontSize', 18) 
 ylabel("Number of Individuals", 'FontSize', 18)
 
 function dYdt = SIRmodels(t,Y,n, beta, gamma)
+   % lOI = .02
     S = Y(1);   %% Susceptibles
-    I = Y(2:(n+1))' ;  
-    R = Y(6);   %% Recovered
+    I = Y(2:(n+1))' ;    %infected populations governed by choice of n 
+    R = Y(n+2);   %% Recovered
     N = S+ sum(I)+ R; %% Total Population
-    dSdt = -sum(beta * (S/N) .* I'); % evolution of susceptible. for seasonal add "+lOI*R"
-    dIdt = beta * (S/N) .* I' - gamma .* I';% evolution of Infected population 1 
+    
+    dSdt = -sum(beta * (S/N) .* I'); % evolution of susceptible. for seasonal add "+lOI*R" and define loI- loss of immunity rate
+    dIdt = beta * (S/N) .* I' - gamma .* I';% evolution of Infected populations (matrix form)
     dRdt = sum(gamma .* I') ; % Recovered for seasonal add "-lOI*R"
+    
     dYdt = [dSdt ;  dIdt; dRdt];% Solution matrix 
 end
