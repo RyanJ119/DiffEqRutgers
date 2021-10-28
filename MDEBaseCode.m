@@ -3,8 +3,8 @@
 %parameters: n (number of variants), R0(replications rate), Beta(infection
 %rate), Gamma(recovery rate), markov chain (mutation factor) 
 
-vas = 2; %number of variants affecting the system: variants associated with specific data used to build R function
-n = 16; %number of variants n>1 (use multiples of vas)
+vas = 4; %number of variants affecting the system: variants associated with specific data used to build R function
+n = 100; %number of variants n>1 (use multiples of vas)
 variants = linspace(0,1,n) ; %x range of distributions: taking 0-4 
 initI = variants/100+1; % this will need to be fixed to be a function matching the four variants
 
@@ -128,7 +128,7 @@ end
 
 mc = dtmc(Trmc,'StateNames',[namesmark]); % define markov chain for plotting 
 
-for i = 1:n/vas
+for i = 1:vas
     names(i+1) = ['Infection ' num2str(i)]  ;  
 end 
                                                 % add susceptible, total infected and
@@ -161,11 +161,10 @@ names (n+3) = "recovered";
 figure;
 plot(tSol,S)
 hold on
-for i = 1:n
-    plot(tSol,I(:,i), 'yellow');
-    sumItotal = sumItotal+I(:,i);
-     
-end
+ for i = 1:n
+%     plot(tSol,I(:,i), 'yellow');              Plotting all infections
+     sumItotal = sumItotal+I(:,i); 
+ end
 sumI = zeros(n/vas, length(I))';   %set up a matrix to conatenate our infected populations into specific variants
 
 
@@ -181,7 +180,7 @@ end
  
 
 for i = 1:n/vas
-    plot(tSol, sumI(:,i), 'blue') %plot new infected
+    plot(tSol, sumI(:,i)) %plot new infected
 end
 
 plot(tSol, sumItotal, 'red')                    
