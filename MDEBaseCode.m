@@ -1,16 +1,22 @@
 %   Model for progression of disease with variants
 
-%parameters: n (number of variants), R0(replications rate), Beta(infection
-%rate), Gamma(recovery rate), markov chain (mutation factor) 
+%parameters: vas (number of variants acting on the system), n (mutations of variants), R0(replications rate), Beta(infection
+%rate), Gamma(recovery rate), markov chain (mutation factor),  
 
-vas = 4; %number of variants affecting the system: variants associated with specific data used to build R function
-n = 100; %number of variants n>1 (use multiples of vas)
-variants = linspace(0,1,n) ; %x range of distributions: taking 0-4 
-initI = variants/100+1; % this will need to be fixed to be a function matching the four variants
+vas =5; %number of variants affecting the system: variants associated with specific data used to build R function
+n = 100; %number of different mutations of variants n>1 (use multiples of vas)
+variants = linspace(0,1,n) ; %x range of distributions: taking 0-1 and placing n evenly distributed points 
+initI = zeros(1, n); %initialize the infected populations with zeroes
+
+%initI(n/2) = 1;
+initI(1) = 1; 
+for i = 1:vas
+initI((i/vas)*n) = 1;     %update the initial infected populations using values or functions
+end
+
+%initI = variants/100+1;% this will need to be fixed to be a function matching the four variants
 
 Yo = [600000; initI' ;0];%% Initial S, I1, I2,... In, R
-sumItotal = 0;
-
 
 Trmc = []; % transition matrix
 S = []; %susceptible populations
@@ -63,8 +69,8 @@ Trmc = mc.P;
 
 
     
-daysUpdate = 7; % Number of days between mutations (swapping between infected groups) 
-totalDays = 600; %total days of program
+daysUpdate = 5; % Number of days between mutations (swapping between infected groups) 
+totalDays = 500; %total days of program
 i = totalDays/daysUpdate;  % number of times to run the solver
 
 
@@ -75,14 +81,16 @@ i = totalDays/daysUpdate;  % number of times to run the solver
 %     if  length(R)>300
 %         
 %         Ro=zeros(n);
-%         beta=Ro.*gamma; %find beta for all infected populations
+%         beta=Ro.*gamma; %%%%Use this to change replication rate mid run
 %         
 %     end
     
 
     
     [tSol,YSol] = ode45(@(t,Y) SIRmodels(t,Y, n, beta', gamma'), tRange, Yo);
-
+%%%% concatinating matrices double counts last previous entry/first new
+%%%% entry. one of them here, then concatonate old solution with new
+%%%% solution
     if length(S)>0 
         S(end)=[];
     end
@@ -96,15 +104,18 @@ i = totalDays/daysUpdate;  % number of times to run the solver
     I = vertcat(I,  YSol(:,2:(n+1)));
 
     if length(R)>0
-        R (end)=[];%%%% concatinating matrices double count last previous entry/first new entry. delete one of them here
+        R (end)=[];
     end
+    
     R = vertcat(R, YSol(:,n+2));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    flip = I';
+
+    flip = I';              %Turn I in order to do mutation step
     Iend = flip(:, end);
 
-
     Iend = ((Iend'./sum(Iend))*Trmc).*sum(Iend); %find probability distribution, multiply by transition matrix,then multiply by total infected again
+
 
     I(end, :) = Iend;
     Yo = [S(end); I(end, :)' ;R(end)];
@@ -128,22 +139,12 @@ end
 
 mc = dtmc(Trmc,'StateNames',[namesmark]); % define markov chain for plotting 
 
-for i = 1:vas
-    names(i+1) = ['Infection ' num2str(i)]  ;  
-end 
-                                                % add susceptible, total infected and
-                                                % recovered for plotting 
-names (1) = "susceptible";
-names (n+2) = "total infected";
-names (n+3) = "recovered";
-
-
 
 %  figure;
 %  graphplot(mc,'LabelEdges',true);       %markov chain visual
 %  
 % figure;
-% imagesc(T);
+% imagesc(Trmc);
 % colormap(jet);
 % colorbar;
 % axis square
@@ -158,37 +159,40 @@ names (n+3) = "recovered";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting solution to SIR model
-figure;
-plot(tSol,S)
-hold on
+
+sumItotal = 0; %set the total infected to zero before summing
  for i = 1:n
-%     plot(tSol,I(:,i), 'yellow');              Plotting all infections
-     sumItotal = sumItotal+I(:,i); 
+%     plot(tSol,I(:,i), 'yellow');  Plotting all mutations of variants if desired
+     sumItotal = sumItotal+I(:,i);  %sum Infected for total infected number
  end
+
 sumI = zeros(n/vas, length(I))';   %set up a matrix to conatenate our infected populations into specific variants
 
 
 for j = 1:vas
     for i = 1:(n/vas)
-    
-    
+        
         sumI(:,j) = sumI(:,j)+I(:,(j-1)*(n/vas)+i);  %concatenate n infected populations into vas categories
        
     end
  
 end
- 
 
-for i = 1:n/vas
-    plot(tSol, sumI(:,i)) %plot new infected
+figure;
+h(1) = plot(tSol,S, 'DisplayName', 'susceptible');
+hold on;
+for i = 1:vas
+h(i+1) =     plot(tSol, sumI(:,i),'DisplayName', ['Infection ' num2str(i)]); %plot new infected;
 end
 
-plot(tSol, sumItotal, 'red')                    
-plot(tSol,R)
-legend(names, 'FontSize', 18)
+h(vas+2) = plot(tSol, sumItotal, 'DisplayName', 'Total Infected ') ;
+
+h(vas+3) = plot(tSol,R, 'DisplayName', 'Recovered ');
+
+legend(h, 'FontSize', 18)
 xlabel("Days", 'FontSize', 18) 
 ylabel("Number of Individuals", 'FontSize', 18)
-
+h = [];
 function dYdt = SIRmodels(t,Y,n, beta, gamma)
    % lOI = .02
     S = Y(1);   %% Susceptibles
