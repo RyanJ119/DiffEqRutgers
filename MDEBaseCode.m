@@ -273,7 +273,9 @@ surf(y,x,I.');
 colormap pink
 c = colorbar
 shading interp
-
+xlabel('Days')
+ylabel('Mutations')
+zlabel('Infected')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Plotting
 
