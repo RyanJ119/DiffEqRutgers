@@ -264,18 +264,30 @@ subplot(2,2,4);
 plot(mu,phi(mu))
 title('Phi')
 
-
 figure;
  ss = size(I);
  [x,y] = ndgrid(1:ss(2),1:ss(1));
 
 surf(y,x,I.');
-colormap pink
+colormap turbo
 c = colorbar
 shading interp
 xlabel('Days')
 ylabel('Mutations')
 zlabel('Infected')
+
+figure;
+ ss = size(probdist);
+ [x,y] = ndgrid(1:ss(2),1:ss(1));
+
+surf(y,x,probdist.');
+colormap turbo
+c = colorbar
+shading interp
+xlabel('Days')
+ylabel('Mutations')
+zlabel('Percent of total infections')
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Plotting
 
