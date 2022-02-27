@@ -1,0 +1,13 @@
+function dYdt = ODESolver(t,Y,n, beta, gamma, u, sigma)
+ lOI = 1/180; %% 1/number of days immune- loss of immunity rate
+ 
+S = Y(1);   %% Susceptibles
+I = Y(2:(n+1))' ;    %infected populations governed by choice of n
+R = Y(n+2);   %% Recovered
+N = S+ sum(I)+ R; %% Total Population
+
+dSdt = -sum(beta * (S/N) .* I')*u; % evolution of susceptible. for seasonal add "+lOI*R" and define loI- loss of immunity rate
+dIdt = beta * (S/N) .* I' - gamma .* I' -sigma*I';% evolution of Infected populations (matrix form)
+dRdt = sum(gamma .* I') ; % Recovered for seasonal add "-lOI*R"
+dHdt = sum(sigma*I')
+dYdt = [dSdt ;  dIdt; dRdtl dHdt];% Solution matrix
