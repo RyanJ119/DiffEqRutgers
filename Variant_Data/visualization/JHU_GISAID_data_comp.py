@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  2 10:41:52 2022
+
+@author: ryanweightman
+"""
+
 import pandas as pd
 import requests
 import io
@@ -21,10 +29,9 @@ download = requests.get(url).content
 
 df = pd.read_csv(io.StringIO(download.decode('utf-8')))
 
-stateDF  = df[df['Province_State'] == 'New York']   
+stateDF  = df[df['Province_State'] == 'Alaska']   
 
-giSaidDF = pd.read_csv('NEW_YORK_GISAID_DATA.csv', header=0) #States should match! 
-
+giSaidDF = pd.read_csv('ALASKA_GISAID_DATA.csv', header=0) #States should match! 
 
 
 
@@ -44,8 +51,6 @@ dates = list(casesDF['date'])
 casesDF['Rolling_Avg']= casesDF['dailyCases'].rolling(7).mean()
 
 ##########JHU data pull and clean
-
-
 
 
 
@@ -118,13 +123,13 @@ plt.close()
     
             #### state speific date cleaning, follow comments
 #dates.remove('2021')   #Uncomment for Missouri
-dates.remove('2021-01') #Uncomment for New York and Florida
-dates.remove('2021-02') #Uncomment for New York and Pennsylvania and Florida
-#dates.remove('2021-03') #Uncomment for Pennsylvania and Florida
+#dates.remove('2021-01') #Uncomment for New York and Florida
+# dates.remove('2021-02') #Uncomment for New York and Pennsylvania and Florida
+# dates.remove('2021-03') #Uncomment for Pennsylvania and Florida
 #dates.remove('2021-04') #Uncomment for Florida
-#dates.remove('2021-05') #Uncomment for Pennsylvania and  Florida
-#dates.remove('2021-06') #Uncomment for Pennsylvania and Florida
-#dates.remove('2021-07') #Uncomment for Pennsylvania and Florida
+# dates.remove('2021-05') #Uncomment for Pennsylvania and  Florida
+# dates.remove('2021-06') #Uncomment for Pennsylvania and Florida
+# dates.remove('2021-07') #Uncomment for Pennsylvania and Florida
 #dates.remove('2021-08') #Uncomment for Florida
 #dates.remove('2021-11') #Uncomment for Florida
 #dates.remove('2021-12') #Uncomment for Florida
@@ -352,10 +357,28 @@ normalizedJHUCasesDFOmicronSubVariants = normalizedJHUCasesDFOmicronSubVariants.
 y = np.vstack(normalizedJHUCasesDFOmicronSubVariants)
 labels = normalizedJHUCasesDFOmicronSubVariants.columns
 fig, ax = plt.subplots()
-ax.stackplot(JHUcases['date'].values, normalizedJHUCasesDFOmicronSubVariants.T, labels = labels)  
-plt.plot(JHUcases['date'],JHUcases['Rolling_Avg']/JHUcases['Rolling_Avg'].max(),color='black', label = 'Rolling_Avg')
-ax.legend(loc ='upper left')
-plt.xticks(JHUcases['date'][::35], rotation=70)
+ax.stackplot(JHUcases['date'].values, normalizedJHUCasesDFOmicronSubVariants.T*JHUcases['Rolling_Avg'], labels = labels) 
+markers_on = ['2021-12-25']
 
-ax.set_title('Noramlized Variant Distribution')
+plt.plot(JHUcases['date'].values,JHUcases['Rolling_Avg'], color='black', label = 'Rolling_Avg')
+#JHUcases['date'][JHUcases['date'] == '2021-12-25'].plot(style='ro')
+
+
+ax.legend(loc ='upper left')
+plt.xticks(JHUcases['date'][::75], rotation=70)
+
+ax.set_title('Variant Distribution Normalized to Daily Cases')
+
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
