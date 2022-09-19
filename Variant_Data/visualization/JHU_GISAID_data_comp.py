@@ -358,11 +358,14 @@ y = np.vstack(normalizedJHUCasesDFOmicronSubVariants)
 labels = normalizedJHUCasesDFOmicronSubVariants.columns
 fig, ax = plt.subplots()
 ax.stackplot(JHUcases['date'].values, normalizedJHUCasesDFOmicronSubVariants.T*JHUcases['Rolling_Avg'], labels = labels) 
-markers_on = ['2021-12-25']
+markers_on = ['2021-12-25', '2020-12-25']
 
 plt.plot(JHUcases['date'].values,JHUcases['Rolling_Avg'], color='black', label = 'Rolling_Avg')
 #JHUcases['date'][JHUcases['date'] == '2021-12-25'].plot(style='ro')
 
+plt.plot(JHUcases[JHUcases.date.isin(markers_on)].date, JHUcases[JHUcases.date.isin(markers_on)].Rolling_Avg, 'bo')
+
+#plt.plot(markers_on,JHUcases.Rolling_Avg[JHUcases.date =='2021-12-25'], "-o")
 
 ax.legend(loc ='upper left')
 plt.xticks(JHUcases['date'][::75], rotation=70)
