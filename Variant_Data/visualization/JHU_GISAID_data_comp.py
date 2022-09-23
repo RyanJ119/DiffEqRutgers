@@ -29,9 +29,9 @@ download = requests.get(url).content
 
 df = pd.read_csv(io.StringIO(download.decode('utf-8')))
 
-stateDF  = df[df['Province_State'] == 'Alaska']   
+stateDF  = df[df['Province_State'] == 'Florida']   
 
-giSaidDF = pd.read_csv('ALASKA_GISAID_DATA.csv', header=0) #States should match! 
+giSaidDF = pd.read_csv('FLORIDA_GISAID_DATA.csv', header=0) #States should match! 
 
 
 
@@ -119,8 +119,10 @@ plt.close()
         
     
 ####Plot variants by date
-    
-    
+datesToRemove = ['2021', '2021-01', '2021-02', '2021-03', '2021-04', '2021-05', '2021-06', '2021-07', '2021-08', '2021-11', '2021-12', '2022-01', '2022-03', '2022-05', '2020', '2020-12']    
+for i in datesToRemove:
+    if i in dates:
+        dates.remove(i) 
             #### state speific date cleaning, follow comments
 #dates.remove('2021')   #Uncomment for Missouri
 #dates.remove('2021-01') #Uncomment for New York and Florida
@@ -358,20 +360,23 @@ y = np.vstack(normalizedJHUCasesDFOmicronSubVariants)
 labels = normalizedJHUCasesDFOmicronSubVariants.columns
 fig, ax = plt.subplots()
 ax.stackplot(JHUcases['date'].values, normalizedJHUCasesDFOmicronSubVariants.T*JHUcases['Rolling_Avg'], labels = labels) 
-markers_on = ['2021-12-25', '2020-12-25']
-
+markers_on = ['2021-12-25', '2020-12-25'] ##must be same length as next line
+marker_labels = ['Christmas  ', 'Christmas  '] #must be same length as previous line. put spaces after text for separation 
 plt.plot(JHUcases['date'].values,JHUcases['Rolling_Avg'], color='black', label = 'Rolling_Avg')
 #JHUcases['date'][JHUcases['date'] == '2021-12-25'].plot(style='ro')
 
-plt.plot(JHUcases[JHUcases.date.isin(markers_on)].date, JHUcases[JHUcases.date.isin(markers_on)].Rolling_Avg, 'bo')
+plt.plot(JHUcases[JHUcases.date.isin(markers_on)].date, JHUcases[JHUcases.date.isin(markers_on)].Rolling_Avg, 'D', color = 'black',  markersize=6)
 
+
+for x, y, text in zip( JHUcases[JHUcases.date.isin(markers_on)].date, JHUcases[JHUcases.date.isin(markers_on)].Rolling_Avg, marker_labels):
+    plt.text(x, y, text, fontsize=10,  rotation=-45,horizontalalignment='right')
 #plt.plot(markers_on,JHUcases.Rolling_Avg[JHUcases.date =='2021-12-25'], "-o")
 
 ax.legend(loc ='upper left')
 plt.xticks(JHUcases['date'][::75], rotation=70)
 
 ax.set_title('Variant Distribution Normalized to Daily Cases')
-
+plt.savefig('NJ_JHU_GISAID_Cases.pdf' , bbox_inches = "tight")
 plt.show()
 
 
