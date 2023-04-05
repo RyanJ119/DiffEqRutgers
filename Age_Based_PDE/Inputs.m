@@ -32,7 +32,7 @@ Iend=[];
 %     0.02 0.03 0.9 0.05; %G
 %     0.02 0.03 0.05 .9]; %D
 
-Ro=(4*mu)./(n*(mu+1)) ;
+Ro=((4*mu)./(mu+1) +1.5)/n ;
 
 %Ro=(mu-.5).^2+1.75 ; % replication rate function
 gamma = (mu+1)./(mu+1) -13/14; % recovery rate (here it is just 1/14

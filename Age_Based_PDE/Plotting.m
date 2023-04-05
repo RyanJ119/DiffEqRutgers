@@ -78,6 +78,20 @@ ylabel('Age')
 zlabel('Infected')
 
 
+figure;
+
+subplot(2,1,1);
+ ss = size(S);
+ [x,y] = ndgrid(1:ss(2),1:ss(1));
+
+surf(y,x,S.');
+colormap turbo
+c = colorbar;
+%caxis([0 1e4])
+shading interp
+xlabel('Days')
+ylabel('Age')
+zlabel('Susceptible')
 
 
 
